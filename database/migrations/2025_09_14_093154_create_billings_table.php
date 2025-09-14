@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('rooms', function (Blueprint $table) {
+        Schema::create('billings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('penghuni_id')->constrained('penghunis')->onDelete('cascade');
+            $table->decimal('amount', 10, 2);
+            $table->date('due_date'); // <-- TAMBAHKAN BARIS INI
+            $table->timestamp('paid_at')->nullable();
+            $table->string('status')->default('unpaid');
             $table->timestamps();
         });
     }
@@ -22,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rooms');
+        Schema::dropIfExists('billings');
     }
 };

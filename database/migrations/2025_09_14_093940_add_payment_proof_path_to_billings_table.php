@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billings', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('billings', function (Blueprint $table) {
+            $table->string('payment_proof_path')->nullable()->after('status');
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billings');
+        Schema::table('billings', function (Blueprint $table) {
+            //
+        });
     }
 };

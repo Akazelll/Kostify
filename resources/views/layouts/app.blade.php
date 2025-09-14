@@ -24,17 +24,17 @@
                     </li>
                     @if(auth()->user()->role === 'ADMIN')
                         <li>
-                            <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-black">
+                            <a href="{{ route('rooms.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-black">
                                 Manajemen Kamar
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-black">
+                            <a href="{{ route('penghunis.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-black">
                                 Manajemen Penghuni
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-black">
+                            <a href="{{ route('billings.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-black">
                                 Manajemen Tagihan
                             </a>
                         </li>
@@ -58,5 +58,6 @@
             </main>
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>
