@@ -35,7 +35,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/billings', [BillingController::class, 'index'])->name('billings.index');
     Route::post('/billings', [BillingController::class, 'store'])->name('billings.store');
-    Route::patch('/billings/{billing}/pay', [BillingController::class, 'markAsPaid'])->name('billings.pay');
+    Route::post('/billings/{billing}/pay', [BillingController::class, 'submitPayment'])->name('billings.pay');
     Route::delete('/billings/{billing}', [BillingController::class, 'destroy'])->name('billings.destroy');
-    
 });

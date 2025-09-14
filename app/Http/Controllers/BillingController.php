@@ -3,89 +3,59 @@
 namespace App\Http\Controllers;
 
 use App\Models\Billing;
-use App\Models\Penghuni;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class BillingController extends Controller
 {
-    /**
-     * Menampilkan daftar tagihan dengan filter bulan dan tahun.
-     */
     public function index(Request $request)
     {
-        // Ambil bulan dan tahun dari request, jika tidak ada, gunakan bulan dan tahun saat ini.
         $selectedYear = $request->input('year', Carbon::now()->year);
         $selectedMonth = $request->input('month', Carbon::now()->month);
 
-        // Ambil data tagihan berdasarkan filter bulan dan tahun pada due_date
         $billings = Billing::with('penghuni.room')
             ->whereYear('due_date', $selectedYear)
             ->whereMonth('due_date', $selectedMonth)
+            ->orderBy('due_date', 'asc')
             ->get();
-        
-        // Ambil data semua penghuni untuk form tambah tagihan
-        $penghunis = Penghuni::with('room')->get();
 
-        return view('billings.index', compact('billings', 'penghunis', 'selectedYear', 'selectedMonth'));
+        return view('billings.index', compact('billings', 'selectedYear', 'selectedMonth'));
     }
 
-    /**
-     * Menyimpan tagihan baru.
-     */
-    public function store(Request $request)
+    // Menggantikan method 'markAsPaid' yang lama
+    public function submitPayment(Request $request, Billing $billing)
     {
         $request->validate([
-            'penghuni_id' => 'required|exists:penghunis,id',
-            'due_date' => 'required|date',
+            'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $penghuni = Penghuni::with('room')->find($request->penghuni_id);
-        
-        // Cek apakah sudah ada tagihan untuk penghuni ini di bulan yang sama
-        $existingBilling = Billing::where('penghuni_id', $request->penghuni_id)
-            ->whereYear('due_date', Carbon::parse($request->due_date)->year)
-            ->whereMonth('due_date', Carbon::parse($request->due_date)->month)
-            ->exists();
-
-        if ($existingBilling) {
-            return redirect()->route('billings.index')
-                             ->withErrors(['msg' => 'Tagihan untuk penghuni ini di bulan tersebut sudah ada.']);
+        // Hapus bukti bayar lama jika ada
+        if ($billing->payment_proof_path) {
+            Storage::delete($billing->payment_proof_path);
         }
 
-        Billing::create([
-            'penghuni_id' => $request->penghuni_id,
-            'amount' => $penghuni->room->price, // Ambil harga dari kamar penghuni
-            'due_date' => $request->due_date,
-            'status' => 'unpaid',
-        ]);
+        // Simpan bukti bayar baru
+        $path = $request->file('payment_proof')->store('public/payment_proofs');
 
-        return redirect()->route('billings.index')
-                         ->with('success', 'Tagihan berhasil dibuat.');
-    }
-
-    /**
-     * Menandai tagihan sebagai lunas.
-     */
-    public function markAsPaid(Billing $billing)
-    {
+        // Perbarui status tagihan
         $billing->update([
             'status' => 'paid',
             'paid_at' => Carbon::now(),
+            'payment_proof_path' => $path,
         ]);
 
-        return redirect()->route('billings.index')
-                         ->with('success', 'Tagihan telah ditandai lunas.');
+        return redirect()->route('billings.index', ['month' => $request->query('month'), 'year' => $request->query('year')])
+                         ->with('success', 'Pembayaran berhasil dikonfirmasi.');
     }
 
-    /**
-     * Menghapus tagihan.
-     */
     public function destroy(Billing $billing)
     {
+        if ($billing->payment_proof_path) {
+            Storage::delete($billing->payment_proof_path);
+        }
         $billing->delete();
 
-        return redirect()->route('billings.index')
-                         ->with('success', 'Tagihan berhasil dihapus.');
+        return redirect()->route('billings.index')->with('success', 'Tagihan berhasil dihapus.');
     }
 }

@@ -1,74 +1,109 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- Notifikasi Sukses --}}
+    {{-- Notifikasi --}}
     @if (session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+            <p>{{ session('success') }}</p>
         </div>
     @endif
 
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold tracking-tight">Manajemen Kamar</h1>
+    {{-- Header Halaman yang Responsif --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Manajemen Kamar</h1>
         <button id="add-room-btn"
-            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-black text-white shadow hover:bg-black/90 h-9 px-4 py-2">
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-gray-900 text-white shadow hover:bg-gray-800 h-10 px-4 py-2 w-full sm:w-auto">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
             Tambah Kamar
         </button>
     </div>
 
-    {{-- Tabel Kamar --}}
-    <div class="rounded-xl border bg-card text-card-foreground shadow">
-        <div class="p-0">
-            <div class="relative w-full overflow-auto">
-                <table class="w-full caption-bottom text-sm">
-                    <thead class="[&_tr]:border-b">
-                        <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">No. Kamar</th>
-                            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tipe</th>
-                            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Harga</th>
-                            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
-                            <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="[&_tr:last-child]:border-0">
-                        @forelse ($rooms as $room)
-                            <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                                <td class="p-4 align-middle font-medium">{{ $room->room_number }}</td>
-                                <td class="p-4 align-middle text-muted-foreground">{{ $room->type ?? '-' }}</td>
-                                <td class="p-4 align-middle text-muted-foreground">Rp
-                                    {{ number_format($room->price, 0, ',', '.') }}</td>
-                                <td class="p-4 align-middle">
-                                    <div
-                                        class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold {{ $room->status === 'available' ? 'border-transparent bg-green-100 text-green-800' : 'border-transparent bg-red-100 text-red-800' }}">
-                                        {{ ucfirst($room->status) }}
-                                    </div>
-                                </td>
-                                <td class="p-4 align-middle">
-                                    <button class="edit-btn text-sm font-medium text-blue-600 hover:underline"
-                                        data-room='{{ $room->toJson() }}'>
-                                        Edit
-                                    </button>
-                                    <span class="text-gray-300 mx-2">|</span>
-                                    <button class="delete-btn text-sm font-medium text-red-600 hover:underline"
-                                        data-id="{{ $room->id }}" data-number="{{ $room->room_number }}">
-                                        Hapus
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                                <td colspan="5" class="p-4 align-middle text-center text-gray-500">
-                                    Belum ada data kamar.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+    {{-- Tampilan untuk Mobile (Card View) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-4">
+        @forelse ($rooms as $room)
+            <div class="rounded-xl border bg-white text-card-foreground shadow">
+                <div class="p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-semibold tracking-tight text-lg">{{ $room->room_number }}</h3>
+                            <p class="text-sm text-muted-foreground">{{ $room->type }}</p>
+                        </div>
+                        <div
+                            class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold {{ $room->status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            {{ ucfirst($room->status) }}
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold mt-4">Rp {{ number_format($room->price, 0, ',', '.') }}</p>
+                    <div class="flex items-center pt-4 mt-4 border-t gap-2">
+                        <button
+                            class="edit-btn flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 h-9 px-3"
+                            data-room='{{ $room->toJson() }}'>
+                            Edit
+                        </button>
+                        <button
+                            class="delete-btn flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 h-9 px-3"
+                            data-id="{{ $room->id }}" data-number="{{ $room->room_number }}">
+                            Hapus
+                        </button>
+                    </div>
+                </div>
             </div>
+        @empty
+            <div
+                class="col-span-1 sm:col-span-2 rounded-xl border bg-white text-card-foreground shadow p-6 text-center text-gray-500">
+                Belum ada data kamar.
+            </div>
+        @endforelse
+    </div>
+
+    {{-- Tampilan untuk Desktop (Table View) --}}
+    <div class="hidden lg:block rounded-xl border bg-white text-card-foreground shadow">
+        <div class="relative w-full overflow-auto">
+            <table class="w-full caption-bottom text-sm">
+                <thead class="[&_tr]:border-b">
+                    <tr class="border-b">
+                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">No. Kamar</th>
+                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tipe</th>
+                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Harga</th>
+                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="[&_tr:last-child]:border-0">
+                    @forelse ($rooms as $room)
+                        <tr class="border-b">
+                            <td class="p-4 align-middle font-medium">{{ $room->room_number }}</td>
+                            <td class="p-4 align-middle text-muted-foreground">{{ $room->type }}</td>
+                            <td class="p-4 align-middle text-muted-foreground">Rp
+                                {{ number_format($room->price, 0, ',', '.') }}</td>
+                            <td class="p-4 align-middle">
+                                <div
+                                    class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold {{ $room->status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ ucfirst($room->status) }}
+                                </div>
+                            </td>
+                            <td class="p-4 align-middle">
+                                <button class="edit-btn text-sm font-medium text-blue-600 hover:underline"
+                                    data-room='{{ $room->toJson() }}'>Edit</button>
+                                <span class="text-gray-300 mx-2">|</span>
+                                <button class="delete-btn text-sm font-medium text-red-600 hover:underline"
+                                    data-id="{{ $room->id }}" data-number="{{ $room->room_number }}">Hapus</button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-gray-500">Belum ada data kamar.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
-    {{-- Modal Form (Untuk Tambah & Edit) --}}
+    {{-- Modal Form (Sama seperti sebelumnya, tidak perlu diubah) --}}
     <div id="room-modal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
         <div id="modal-content"
@@ -121,7 +156,8 @@
                                 class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
                                 <option value="available" @if (old('status') == 'available') selected @endif>Available
                                 </option>
-                                <option value="occupied" @if (old('status') == 'occupied') selected @endif>Occupied</option>
+                                <option value="occupied" @if (old('status') == 'occupied') selected @endif>Occupied
+                                </option>
                             </select>
                         </div>
                     </div>
