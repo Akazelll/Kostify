@@ -12,10 +12,12 @@ class Billing extends Model
     protected $fillable = [
         'penghuni_id',
         'amount',
+        'balance',
         'due_date',
         'paid_at',
         'status',
         'payment_proof_path',
+        "invoice_number",
     ];
 
     /**
@@ -24,5 +26,9 @@ class Billing extends Model
     public function penghuni()
     {
         return $this->belongsTo(Penghuni::class);
+    }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 }

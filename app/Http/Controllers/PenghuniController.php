@@ -34,7 +34,7 @@ class PenghuniController extends Controller
         ]);
 
         // 1. Simpan file tanda pengenal
-        $path = $request->file('identity_card')->store('public/identity_cards');
+        $path = $request->file('identity_card')->store('identity_cards', 'public');
 
         // 2. Buat data penghuni baru
         $penghuni = Penghuni::create([
@@ -49,15 +49,21 @@ class PenghuniController extends Controller
         $room->status = 'occupied';
         $room->save();
 
-        // 4. Buat tagihan pertama secara otomatis
-        Billing::create([
+        $billing = Billing::create([
             'penghuni_id' => $penghuni->id,
+            'balance' => $room->price,
             'amount' => $room->price,
-            'due_date' => Carbon::now()->addDays(7), // Jatuh tempo 7 hari dari sekarang
+            'due_date' => Carbon::now()->endOfMonth(),
             'status' => 'unpaid',
         ]);
 
-        return redirect()->route('penghunis.index')
+        $billing->invoice_number = 'KTF-' . Carbon::now()->format('Ymd') . '-' . $billing->id;
+        $billing->save();
+
+        $newBillingMonth = Carbon::parse($billing->due_date)->month;
+        $newBillingYear = Carbon::parse($billing->due_date)->year;
+
+        return redirect()->route('billings.index', ['month' => $newBillingMonth, 'year' => $newBillingYear])
             ->with('success', 'Penghuni baru berhasil ditambahkan dan tagihan pertama telah dibuat.');
     }
 

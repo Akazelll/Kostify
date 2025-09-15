@@ -3,12 +3,13 @@
 @section('content')
     {{-- Notifikasi --}}
     @if (session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
+            <p class="font-bold">Sukses</p>
             <p>{{ session('success') }}</p>
         </div>
     @endif
     @if ($errors->any())
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
             <p class="font-bold">Terjadi Kesalahan</p>
             <ul>
                 @foreach ($errors->all() as $error)
@@ -18,11 +19,14 @@
         </div>
     @endif
 
-    {{-- Header Halaman yang Responsif --}}
+    {{-- Header Halaman --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Manajemen Penghuni</h1>
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">Manajemen Penghuni</h1>
+            <p class="text-sm text-gray-500 mt-1">Kelola data penghuni dan kamar yang mereka tempati.</p>
+        </div>
         <button id="add-btn"
-            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-gray-900 text-white shadow hover:bg-gray-800 h-10 px-4 py-2 w-full sm:w-auto">
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-gray-900 text-white shadow-sm hover:bg-gray-800 h-10 px-4 py-2 w-full sm:w-auto">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -31,86 +35,52 @@
         </button>
     </div>
 
-    {{-- Tampilan untuk Mobile (Card View) --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-4">
+    {{-- Tampilan Grid Responsif --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         @forelse ($penghunis as $penghuni)
-            <div class="rounded-xl border bg-white text-card-foreground shadow">
-                <div class="p-6">
-                    <h3 class="font-semibold tracking-tight text-lg">{{ $penghuni->name }}</h3>
-                    <p class="text-sm text-muted-foreground">{{ $penghuni->phone_number }}</p>
-                    <div class="flex items-center gap-2 mt-4">
-                        <span class="font-semibold">Kamar:</span>
-                        <span>{{ $penghuni->room->room_number ?? 'N/A' }}</span>
+            <div
+                class="rounded-xl border bg-white text-card-foreground shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                {{-- Gambar Tanda Pengenal --}}
+                <div class="aspect-video w-full">
+                    {{-- Ini adalah cara pemanggilan gambar yang paling andal --}}
+                    <img src="{{ asset('uploads/' . $penghuni->identity_card_path) }}"
+                        alt="Tanda Pengenal {{ $penghuni->name }}"
+                        class="w-full h-full object-cover rounded-t-xl bg-gray-100">
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex-1">
+                        <h3 class="font-semibold tracking-tight text-lg text-gray-900">{{ $penghuni->name }}</h3>
+                        <p class="text-sm text-gray-500">{{ $penghuni->phone_number }}</p>
+                        <div class="mt-4 pt-4 border-t">
+                            <p class="text-xs text-gray-500">Menempati Kamar</p>
+                            <p class="font-semibold text-gray-800">{{ $penghuni->room->room_number ?? 'N/A' }}</p>
+                        </div>
                     </div>
                     <div class="flex items-center pt-4 mt-4 border-t gap-2">
                         <button
-                            class="edit-btn flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 h-9 px-3"
+                            class="edit-btn w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 h-9 px-3"
                             data-penghuni='{{ $penghuni->toJson() }}' data-rooms='{{ json_encode($availableRooms) }}'>
                             Edit
                         </button>
                         <button
-                            class="delete-btn flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 h-9 px-3"
+                            class="delete-btn w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 h-9 px-3"
                             data-id="{{ $penghuni->id }}" data-name="{{ $penghuni->name }}">
                             Hapus
                         </button>
                     </div>
-                    <a href="{{ Storage::url($penghuni->identity_card_path) }}" target="_blank"
-                        class="mt-2 w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 h-9 px-3">
-                        Lihat Tanda Pengenal
-                    </a>
                 </div>
             </div>
         @empty
             <div
-                class="col-span-1 sm:col-span-2 rounded-xl border bg-white text-card-foreground shadow p-6 text-center text-gray-500">
-                Belum ada data penghuni.
+                class="col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl border-2 border-dashed bg-gray-50 p-12 text-center text-gray-500">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.125-1.274-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.125-1.274.356-1.857m0 0a3.001 3.001 0 015.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada penghuni</h3>
+                <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan penghuni baru.</p>
             </div>
         @endforelse
-    </div>
-
-    {{-- Tampilan untuk Desktop (Table View) --}}
-    <div class="hidden lg:block rounded-xl border bg-white text-card-foreground shadow">
-        <div class="relative w-full overflow-auto">
-            <table class="w-full caption-bottom text-sm">
-                <thead class="[&_tr]:border-b">
-                    <tr class="border-b">
-                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Nama Penghuni</th>
-                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Nomor HP</th>
-                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Kamar</th>
-                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tanda Pengenal</th>
-                        <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="[&_tr:last-child]:border-0">
-                    @forelse ($penghunis as $penghuni)
-                        <tr class="border-b">
-                            <td class="p-4 align-middle font-medium">{{ $penghuni->name }}</td>
-                            <td class="p-4 align-middle text-muted-foreground">{{ $penghuni->phone_number }}</td>
-                            <td class="p-4 align-middle text-muted-foreground">{{ $penghuni->room->room_number ?? 'N/A' }}
-                            </td>
-                            <td class="p-4 align-middle">
-                                <a href="{{ Storage::url($penghuni->identity_card_path) }}" target="_blank"
-                                    class="text-sm font-medium text-blue-600 hover:underline">
-                                    Lihat File
-                                </a>
-                            </td>
-                            <td class="p-4 align-middle">
-                                <button class="edit-btn text-sm font-medium text-blue-600 hover:underline"
-                                    data-penghuni='{{ $penghuni->toJson() }}'
-                                    data-rooms='{{ json_encode($availableRooms) }}'>Edit</button>
-                                <span class="text-gray-300 mx-2">|</span>
-                                <button class="delete-btn text-sm font-medium text-red-600 hover:underline"
-                                    data-id="{{ $penghuni->id }}" data-name="{{ $penghuni->name }}">Hapus</button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="p-4 text-center text-gray-500">Belum ada data penghuni.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
     </div>
 
     {{-- Modal Form (Untuk Tambah & Edit) --}}
@@ -133,15 +103,17 @@
                                 class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
                         </div>
                         <div>
-                            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-1">Nomor HP</label>
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-1">Nomor
+                                HP</label>
                             <input type="text" name="phone_number" id="phone_number" required
                                 class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
                         </div>
                         <div>
-                            <label for="room_id" class="block text-sm font-medium text-gray-700 mb-1">Pilih Kamar</label>
+                            <label for="room_id" class="block text-sm font-medium text-gray-700 mb-1">Pilih
+                                Kamar</label>
                             <select name="room_id" id="room_id" required
                                 class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
-                                {{-- Options will be populated by JavaScript --}}
+                                {{-- Options populated by JS --}}
                             </select>
                         </div>
                         <div>
@@ -153,9 +125,9 @@
                                 mengubah.</small>
                         </div>
                     </div>
-                    <div class="flex items-center justify-end p-6 pt-0 space-x-2">
+                    <div class="flex items-center justify-end p-6 pt-0 space-x-2 bg-gray-50 border-t rounded-b-xl">
                         <button type="button" id="cancel-btn"
-                            class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input h-10 px-4 py-2">Batal</button>
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium border h-10 px-4 py-2">Batal</button>
                         <button type="submit"
                             class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-gray-900 text-white shadow hover:bg-gray-800 h-10 px-4 py-2 w-24">Simpan</button>
                     </div>
@@ -202,8 +174,6 @@
 
     @push('scripts')
         <script>
-            // Kode JavaScript lengkap dari langkah sebelumnya tetap sama dan tidak perlu diubah.
-            // Cukup salin-tempel seluruh blok script yang sudah ada di sini.
             document.addEventListener('DOMContentLoaded', function() {
                 // --- Variabel Modal Form ---
                 const formModal = document.getElementById('form-modal');
